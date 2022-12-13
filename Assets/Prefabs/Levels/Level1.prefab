@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3025171387006984798, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
       propertyPath: m_Name
-      value: Level 1
+      value: Level1
       objectReference: {fileID: 0}
     - target: {fileID: 6211536683136738554, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
       propertyPath: m_RootOrder
@@ -56,8 +56,22 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6693628333354106707, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
+      propertyPath: blockOffset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693628333354106707, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
       propertyPath: blockPrefab
       value: 
       objectReference: {fileID: 4734214659735790741, guid: 1bac4710717a76b489e62ad9b90641f1, type: 3}
+    - target: {fileID: 6693628333354106707, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
+      propertyPath: blockArrayBox
+      value: "1,1,1,1,1,1,1,1,1,1,1,green    ,    blue    ,,,\n2,2,2,2,2,2,2,2,2,2\n3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3\n4,4,4 
+        ,4,4,    4,4,4\n5,5,5,5,5,5,5,5,5,5,5,5,5\ngreen,blue,red,magenta,foo,!\"\xA7$,
+        dgdfg,blue"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8514139272958355654, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}
+      propertyPath: m_Color.a
+      value: 0.07058824
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c74790bc87cb9c24f9d78ff5741064ca, type: 3}

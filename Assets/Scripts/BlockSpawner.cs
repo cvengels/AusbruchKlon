@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class BlockSpawner : MonoBehaviour
 {
-    public GameObject blockPrefab;
+    [SerializeField] public GameObject blockPrefab;
 
-    [TextArea(1, 12)]
-    public string blockArrayBox;
+    [SerializeField] public float blockOffset;
+
+    [TextArea(1, 12), SerializeField] public string blockArrayBox;
     
     public class BlockColor : IEquatable<BlockColor>
     {
@@ -47,7 +50,8 @@ public class BlockSpawner : MonoBehaviour
     }
 
     public List<BlockColor> blockColors = new List<BlockColor>();
-
+    
+    
     private void Awake()
     {
         // Block color definitions
@@ -71,12 +75,12 @@ public class BlockSpawner : MonoBehaviour
         {
             Debug.Log("Block Prefab gefunden");
 
-            Vector2 maxBlocks;
+
             string[][] blockArray2D;
             
             Debug.Log("Vorher: \n" + blockArrayBox);
-            CompileTextBlock(blockArrayBox, "magenta", out maxBlocks, out blockArray2D);
-            
+            CompileTextBlock(blockArrayBox, "magenta", out blockArray2D);
+
             // Display the array elements.
             string tmpString = "";
             for (int i = 0; i < blockArray2D.Length; i++)
@@ -90,6 +94,7 @@ public class BlockSpawner : MonoBehaviour
             }
             Debug.Log("Nachher: \n" + tmpString);
             
+            GenerateBlocks(blockPrefab, blockArray2D, blockOffset);
         }
         else
         {
@@ -97,10 +102,60 @@ public class BlockSpawner : MonoBehaviour
         }
     }
 
-    void CompileTextBlock(string textBlock, string defaultColor, out Vector2 maxItemsPerRow,
-        out string[][] textBlockArray)
+
+    void GenerateBlocks(GameObject blockPrefab, string[][] blockArray, float offset)
     {
-        Vector2 maxLengths;
+        if (blockPrefab != null)
+        {
+            Vector2Int maxBlocks = Vector2Int.zero;
+            Vector2 blockSize = Vector2.zero;
+            Vector2 blockRowStart = Vector2.zero;
+            maxBlocks.y = blockArray.Length;
+
+            foreach (var blockRow in blockArray)
+            {
+                maxBlocks.x = Mathf.Max(maxBlocks.x, blockRow.Length);
+            }
+
+            blockSize = CalculateBrickSize(transform.localScale, maxBlocks, offset);
+
+            blockRowStart = new Vector2(
+                maxBlocks.x % 2 == 0 ? 
+                    transform.localPosition.x - (offset / 2) + (offset * (maxBlocks.x / 2) - 1) + (maxBlocks.x / 2 * blockSize.x) : 
+                    transform.localPosition.x - (blockSize.x / 2) + (offset * (maxBlocks.x - 1 / 2)) + (maxBlocks.x - 1 / 2),
+                transform.localPosition.y + (offset + blockSize.y / 2)
+            );
+
+            for (int i = 0; i < blockArray[0].Length; i++)
+            {
+                Vector2 startPoint = new Vector2(
+                    blockRowStart.x + (i * offset + i * blockSize.x),
+                    blockRowStart.y
+                    );
+                GameObject newBlock = Instantiate(blockPrefab, startPoint, Quaternion.identity);
+                newBlock.transform.localScale = blockSize;
+                Color myColor = Color.clear; ColorUtility.TryParseHtmlString (blockArray[0][i], out myColor);
+                newBlock.GetComponent<SpriteRenderer>().color = myColor;
+            }
+        }
+    }
+
+    Vector2 CalculateBrickSize(Vector2 generatorSize, Vector2 blockCount, float offset)
+    {
+        Vector2 blockSize = new Vector2(
+            (generatorSize.x - (offset * blockCount.x + 1)) / blockCount.x,
+            (generatorSize.y - (offset * blockCount.y + 1)) / blockCount.y
+        );
+        
+        if (blockSize.x <= 0f || blockSize.y <= 0f)
+        {
+            blockSize = CalculateBrickSize(generatorSize, blockCount, offset * 0.95f);
+        }
+        return blockSize;
+    }
+
+    void CompileTextBlock(string textBlock, string defaultColor, out string[][] textBlockArray)
+    {
         string[][] jaggedArray;
 
         if (!blockColors.Exists(x => x.ColorName == defaultColor))
@@ -116,9 +171,6 @@ public class BlockSpawner : MonoBehaviour
             
             // Initialize jagged array with row count
             jaggedArray = new string[rowCount][];
-            
-            maxLengths.x = 0;
-            maxLengths.y = rowCount;
 
             //Debug.Log(jaggedArray.Length + " Zeilen gefunden");
             
@@ -131,10 +183,6 @@ public class BlockSpawner : MonoBehaviour
             // Extract each row
             for (int i = 0; i < jaggedArray.Length; i++)
             {
-                int tmpLength = jaggedArray[i].Length;
-                if (tmpLength > maxLengths.x) maxLengths.x = tmpLength;
-                //Debug.Log(tmpLength + " Elemente (roh): " + String.Join(" - ", jaggedArray[i]));
-                
                 // Check if value is usable
                 for (int j = 0; j < jaggedArray[i].Length; j++)
                 {
@@ -149,10 +197,8 @@ public class BlockSpawner : MonoBehaviour
         else
         {
             Debug.LogError("Textblock konnte nicht geparst werden");
-            maxLengths = Vector2.zero;
             jaggedArray = new string[][] {};
         }
-        maxItemsPerRow = maxLengths;
         textBlockArray = jaggedArray;
     }
 
