@@ -117,38 +117,42 @@ public class BlockSpawner : MonoBehaviour
                 maxBlocks.x = Mathf.Max(maxBlocks.x, blockRow.Length);
             }
 
-            blockSize = CalculateBrickSize(transform.localScale, maxBlocks, offset);
-
+            blockSize = CalculateBrickSize(transform, new Vector2(blockArray[0].Length, blockArray[0].Length), offset);
+            
+            print(offset + "; " + blockArray[0].Length + "; " + blockSize.x);
+            
             blockRowStart = new Vector2(
-                maxBlocks.x % 2 == 0 ? 
-                    transform.localPosition.x - (offset / 2) + (offset * (maxBlocks.x / 2) - 1) + (maxBlocks.x / 2 * blockSize.x) : 
-                    transform.localPosition.x - (blockSize.x / 2) + (offset * (maxBlocks.x - 1 / 2)) + (maxBlocks.x - 1 / 2),
-                transform.localPosition.y + (offset + blockSize.y / 2)
+                blockArray[0].Length % 2 == 0 ? 
+                    transform.position.x - (offset / 2) - (offset * ((blockArray[0].Length / 2) - 1)) - ((blockArray[0].Length / 2) * blockSize.x) : 
+                    transform.position.x - (blockSize.x / 2) - (offset * (blockArray[0].Length - 1 / 2)) - (blockArray[0].Length - 1 / 2),
+                transform.position.y + (transform.localScale.y / 2) - (transform.localScale.y / 2) - (offset + blockSize.y / 2)
             );
 
             for (int i = 0; i < blockArray[0].Length; i++)
             {
                 Vector2 startPoint = new Vector2(
-                    blockRowStart.x + (i * offset + i * blockSize.x),
+                    blockRowStart.x + ((i * offset) + (i * blockSize.x)),
                     blockRowStart.y
                     );
                 GameObject newBlock = Instantiate(blockPrefab, startPoint, Quaternion.identity);
                 newBlock.transform.localScale = blockSize;
+                newBlock.name = "Block " + (i + 1);
                 Color myColor = Color.clear; ColorUtility.TryParseHtmlString (blockArray[0][i], out myColor);
                 newBlock.GetComponent<SpriteRenderer>().color = myColor;
             }
         }
     }
 
-    Vector2 CalculateBrickSize(Vector2 generatorSize, Vector2 blockCount, float offset)
+    Vector2 CalculateBrickSize(Transform generatorSize, Vector2 blockCount, float offset)
     {
         Vector2 blockSize = new Vector2(
-            (generatorSize.x - (offset * blockCount.x + 1)) / blockCount.x,
-            (generatorSize.y - (offset * blockCount.y + 1)) / blockCount.y
+            (transform.localScale.x - ((blockCount.x + 1) * offset)) / blockCount.x,
+            (transform.localScale.y - ((blockCount.y + 1) * offset)) / blockCount.y
         );
         
         if (blockSize.x <= 0f || blockSize.y <= 0f)
         {
+            Debug.Log("Offset der Blöcke zu groß. wird auf " + offset * 0.95f + "geändert und neu probiert ...");
             blockSize = CalculateBrickSize(generatorSize, blockCount, offset * 0.95f);
         }
         return blockSize;

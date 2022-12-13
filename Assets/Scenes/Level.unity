@@ -256,6 +256,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1253498361561814618, guid: 4e21ec6a2be783f499562df077235552, type: 3}
+      propertyPath: blockOffset
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1253498361561814618, guid: 4e21ec6a2be783f499562df077235552, type: 3}
+      propertyPath: blockArrayBox
+      value: "1,1,1,1,1,1,1,1,1,1,1,green    ,    blue    ,\n2,2,2,2,2,2,2,2,2,2\n3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3\n4,4,4 
+        ,4,4,    4,4,4\n5,5,5,5,5,5,5,5,5,5,5,5,5\ngreen,blue,red,magenta,foo,!\"\xA7$,
+        dgdfg,blue"
+      objectReference: {fileID: 0}
     - target: {fileID: 1995681960576339443, guid: 4e21ec6a2be783f499562df077235552, type: 3}
       propertyPath: m_RootOrder
       value: 4
