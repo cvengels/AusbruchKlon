@@ -11,7 +11,7 @@ public class BlockSpawner : MonoBehaviour
 
     [SerializeField] public float blockOffset;
 
-    [TextArea(1, 12), SerializeField] public string blockArrayBox;
+    [TextArea(1, 20), SerializeField] public string blockArrayBox;
     
     public class BlockColor : IEquatable<BlockColor>
     {
@@ -107,44 +107,69 @@ public class BlockSpawner : MonoBehaviour
     {
         if (blockPrefab != null)
         {
-            Vector2Int maxBlocks = Vector2Int.zero;
-            Vector2 blockSize = Vector2.zero;
-            Vector2 blockRowStart = Vector2.zero;
-            maxBlocks.y = blockArray.Length;
-
-            foreach (var blockRow in blockArray)
+            // Generate boundary box
+            List<GameObject> blockPuffer = new List<GameObject>();
+                
+            for (int i = 0; i < blockArray.Length; i++)
             {
-                maxBlocks.x = Mathf.Max(maxBlocks.x, blockRow.Length);
-            }
+                Vector2Int maxBlocks = Vector2Int.zero;
+                Vector2 blockSize = Vector2.zero;
+                Vector2 blockRowStart = Vector2.zero;
+                maxBlocks.y = blockArray.Length;
 
-            blockSize = CalculateBrickSize(transform, new Vector2(blockArray[0].Length, blockArray[0].Length), offset);
-            
-            print(offset + "; " + blockArray[0].Length + "; " + blockSize.x);
-            
-            blockRowStart = new Vector2(
-                blockArray[0].Length % 2 == 0 ? 
-                    transform.position.x - (offset / 2) - (offset * ((blockArray[0].Length / 2) - 1)) - ((blockArray[0].Length / 2) * blockSize.x) : 
-                    transform.position.x - (blockSize.x / 2) - (offset * (blockArray[0].Length - 1 / 2)) - (blockArray[0].Length - 1 / 2),
-                transform.position.y + (transform.localScale.y / 2) - (transform.localScale.y / 2) - (offset + blockSize.y / 2)
-            );
+                foreach (var blockRow in blockArray)
+                {
+                    maxBlocks.x = Mathf.Max(maxBlocks.x, blockRow.Length);
+                }
 
-            for (int i = 0; i < blockArray[0].Length; i++)
-            {
-                Vector2 startPoint = new Vector2(
-                    blockRowStart.x + ((i * offset) + (i * blockSize.x)),
-                    blockRowStart.y
+                blockSize = CalculateBrickSize(transform, maxBlocks, out offset);
+
+                //print(offset + "; " + blockArray[i].Length + "; " + blockSize.x);
+
+                blockRowStart = new Vector2(
+                    transform.position.x,
+                    transform.position.y + (transform.localScale.y / 2) //- (blockSize.y / 2)
+                );
+
+
+                for (int j = 0; j < blockArray[i].Length; j++)
+                {
+                    Vector2 startPoint = new Vector2(
+                        blockRowStart.x + ((j * offset) + (j * blockSize.x)),
+                        blockRowStart.y //- (i * offset + i * blockSize.y)
                     );
-                GameObject newBlock = Instantiate(blockPrefab, startPoint, Quaternion.identity);
-                newBlock.transform.localScale = blockSize;
-                newBlock.name = "Block " + (i + 1);
-                Color myColor = Color.clear; ColorUtility.TryParseHtmlString (blockArray[0][i], out myColor);
-                newBlock.GetComponent<SpriteRenderer>().color = myColor;
+
+                    GameObject newBlock = Instantiate(blockPrefab, transform.position, Quaternion.identity, transform);
+                    newBlock.transform.localScale = blockSize;
+                    newBlock.name = "Block " + (i + 1) + ":" + (j + 1);
+                    Color myColor = Color.clear;
+                    ColorUtility.TryParseHtmlString(blockArray[i][j], out myColor);
+                    newBlock.GetComponent<SpriteRenderer>().color = myColor;
+                    blockPuffer.Add(newBlock);
+                }
+
+                Bounds blockOffsetBounds = new Bounds();
+
+                foreach (GameObject blockToMove in blockPuffer)
+                {
+                    blockOffsetBounds.Encapsulate(blockToMove.transform.position);
+                }
+
+                foreach (GameObject blockToMove in blockPuffer)
+                {
+                    blockToMove.transform.position -= blockOffsetBounds.center;
+                }
+                
             }
+
+            Debug.Log("Block Puffer: " + blockPuffer.Count);
+
         }
     }
 
-    Vector2 CalculateBrickSize(Transform generatorSize, Vector2 blockCount, float offset)
+    Vector2 CalculateBrickSize(Transform generatorSize, Vector2 blockCount, out float offset)
     {
+        offset = 0;
         Vector2 blockSize = new Vector2(
             (transform.localScale.x - ((blockCount.x + 1) * offset)) / blockCount.x,
             (transform.localScale.y - ((blockCount.y + 1) * offset)) / blockCount.y
@@ -152,9 +177,11 @@ public class BlockSpawner : MonoBehaviour
         
         if (blockSize.x <= 0f || blockSize.y <= 0f)
         {
-            Debug.Log("Offset der Blöcke zu groß. wird auf " + offset * 0.95f + "geändert und neu probiert ...");
-            blockSize = CalculateBrickSize(generatorSize, blockCount, offset * 0.95f);
+            Debug.Log("Offset der Blöcke zu groß. wird auf " + offset * 0.95f + "geändert und neu probiert ..."); 
+            offset *= 0.95f;
+            blockSize = CalculateBrickSize(generatorSize, blockCount, out offset);
         }
+        //Debug.Log("Offset auf " + offset + " gesetzt");
         return blockSize;
     }
 
@@ -176,8 +203,6 @@ public class BlockSpawner : MonoBehaviour
             // Initialize jagged array with row count
             jaggedArray = new string[rowCount][];
 
-            //Debug.Log(jaggedArray.Length + " Zeilen gefunden");
-            
             // Fill array with content from rows
             for (int i = 0; i < rowCount; i++)
             {
